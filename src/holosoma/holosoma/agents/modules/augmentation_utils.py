@@ -116,10 +116,7 @@ class SymmetryUtils:
             idx = 0
             idx_single_frame = 0
             for term_name in term_keys:
-                # Compute the term once to get its dimension
-                term_cfg = group_cfg.terms[term_name]
-                obs = obs_manager._compute_term(group_name, term_name, term_cfg)
-                term_dim = obs.shape[1]
+                term_dim = obs_manager.term_shape(group_name, term_name)[0]
 
                 # Store the base dimension (without history)
                 self.sub_observation_dims[term_name] = term_dim
