@@ -21,6 +21,7 @@ set(HOLOSOMA_PRESET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/config/inference" CACHE PAT
     "Directory with the inference presets (inference:<name>)")
 
 add_library(holosoma_cpp_core
+  src/general_wbt_policy.cpp
   src/cli.cpp
   src/commands.cpp
   src/config.cpp
@@ -59,6 +60,9 @@ target_compile_options(holosoma_run_policy PRIVATE -Wall -Wextra -Wpedantic)
 set_target_properties(holosoma_run_policy PROPERTIES
   BUILD_RPATH "${ONNXRuntime_LIBRARY_DIR}"
   INSTALL_RPATH "\$ORIGIN/../lib;${ONNXRuntime_LIBRARY_DIR}")
+
+add_executable(ExampleApp apps/ExampleApp.cpp)
+target_link_libraries(ExampleApp PRIVATE holosoma_cpp_core yaml-cpp::yaml-cpp)
 
 install(TARGETS holosoma_run_policy RUNTIME DESTINATION bin)
 
