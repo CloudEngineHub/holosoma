@@ -209,6 +209,7 @@ TaskConfig parse_task(const YAML::Node& node, const std::string& path, const std
   r.optional("state_input", task.state_input);
   r.optional("auto_walk_on_vel_cmd", task.auto_walk_on_vel_cmd);
   r.optional("use_sim_time", task.use_sim_time);
+  r.optional("wbt_history_initialization", task.wbt_history_initialization);
   r.optional("desired_base_height", task.desired_base_height);
   r.optional("print_observations", task.print_observations);
   r.optional("motion_start_timestep", task.motion_start_timestep);
@@ -266,7 +267,7 @@ TaskConfig parse_task(const YAML::Node& node, const std::string& path, const std
   }
 
   for (const char* key : {"joystick_type", "joystick_device", "ros_cmd_vel_topic", "ros_state_input_topic",
-                          "ros_vel_timeout", "residual_upper_body_action"}) {
+                          "ros_vel_timeout", "residual_upper_body_action", "startup_state_timeout"}) {
     r.ignore(key);
   }
   r.finish();
@@ -280,6 +281,8 @@ RuntimeConfig parse_runtime(const YAML::Node& node, const std::string& path) {
   }
   MapReader r(node, path);
   r.optional("state_timeout_s", runtime.state_timeout_s);
+  r.optional("use_gpu", runtime.use_gpu);
+  r.optional("intra_op_threads", runtime.intra_op_threads);
   r.optional("damping_kd", runtime.damping_kd);
   r.finish();
   return runtime;
@@ -391,6 +394,10 @@ void validate_one(const InferenceConfig& config, const std::string& path) {
     }
   }
   if (task.motion_start_timestep < 0) throw ConfigError(path + ".task.motion_start_timestep: must be >= 0");
+  if (task.wbt_history_initialization != "repeat_first_valid_obs" && task.wbt_history_initialization != "zero_pad") {
+    throw ConfigError(path + ".task.wbt_history_initialization: '" + task.wbt_history_initialization +
+                      "' is not repeat_first_valid_obs or zero_pad");
+  }
 }
 
 }  // namespace
@@ -406,6 +413,10 @@ bool InferenceConfig::is_wbt() const {
 
 InferenceConfig parse_inference_config(const YAML::Node& node, const std::string& base_dir) {
   return parse_document(node, base_dir, "config", nullptr);
+}
+
+InferenceConfig config_from_yaml(const std::string& text, const std::string& base_dir) {
+  return parse_inference_config(YAML::Load(text), base_dir);
 }
 
 void validate_inference_config(const InferenceConfig& config) {

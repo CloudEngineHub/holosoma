@@ -77,6 +77,8 @@ struct TaskConfig {
   std::string state_input = "keyboard";
   bool auto_walk_on_vel_cmd = false;
   bool use_sim_time = false;
+  // WBT: "repeat_first_valid_obs" (default) or "zero_pad"; overrides checkpoint metadata.
+  std::string wbt_history_initialization = "repeat_first_valid_obs";
   double desired_base_height = 0.75;
   bool print_observations = false;
   int motion_start_timestep = 0;
@@ -86,6 +88,8 @@ struct TaskConfig {
 
 // Options that only exist in the C++ runtime (YAML section `runtime`, CLI `--runtime.*`).
 struct RuntimeConfig {
+  bool use_gpu = false;
+  int intra_op_threads = 1;
   // Enter damping if the newest LowState is older than this while commanding (0 disables).
   double state_timeout_s = 0.5;
   // Derivative gain of the damping command (kp = 0) sent on faults and at exit.
@@ -105,6 +109,8 @@ struct InferenceConfig {
 
 // Parses a full inference document. Relative model paths resolve against `base_dir`.
 InferenceConfig parse_inference_config(const YAML::Node& node, const std::string& base_dir);
+// Library callers need no YAML headers or parser dependency.
+InferenceConfig config_from_yaml(const std::string& text, const std::string& base_dir = "");
 
 // Checks cross-field invariants (lengths, supported inputs, ...). Throws ConfigError.
 void validate_inference_config(const InferenceConfig& config);

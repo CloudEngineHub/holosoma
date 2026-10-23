@@ -50,6 +50,11 @@ class BasePolicy {
 
   // Loads every model and activates the first one. Call once after construction.
   void initialize();
+  // Packed actor observation to scaled joint offsets, with no motor I/O.
+  virtual std::vector<double> infer_observation(const std::vector<float>& obs);
+  // Evaluate and warm model/history without publishing or changing engagement.
+  std::vector<double> infer_offsets(const RobotState& state) { return rl_inference(state); }
+  void reset();
 
   // ---- loop hooks (BasePolicy.run) ----
   virtual void apply_velocity(const VelCmd& vc);
@@ -87,7 +92,7 @@ class BasePolicy {
  protected:
   struct ModelSlot {
     std::string path;
-    std::unique_ptr<OnnxModel> model;
+    std::shared_ptr<OnnxModel> model;
     std::vector<double> kp;  // joint order
     std::vector<double> kd;
     std::string gain_source;
